@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Know Your Fabric</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --canvas: #E8E1CD;
+    --canvas-deep: #DCD3B8;
+    --ink: #26211C;
+    --ink-soft: #5B5347;
+    --tan-border: #B7A98A;
+    --eco: #54683C;
+    --eco-bg: #E3E8D6;
+    --synthetic: #4B4F92;
+    --synthetic-bg: #E1E1F0;
+    --rust: #A8451F;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  header {
+    max-width: 46ch;
+    margin-bottom: 48px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.15;
+    margin: 0 0 14px;
+  }
+
+  header p {
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .dropzone {
+    border: 2px dashed var(--tan-border);
+    border-radius: 4px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--canvas-deep);
+    transition: border-color 0.15s ease;
+  }
+
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--rust);
+  }
+
+  .dropzone p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  .dropzone input { display: none; }
+
+  #preview-wrap {
+    margin-top: 20px;
+    display: none;
+  }
+
+  #preview-wrap img {
+    width: 100%;
+    border-radius: 4px;
+    display: block;
+    border: 1px solid var(--tan-border);
+  }
+
+  button#analyze-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 14px;
+    background: var(--ink);
+    color: var(--canvas);
+    border: none;
+    border-radius: 4px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: none;
+  }
+
+  button#analyze-btn:hover { background: var(--rust); }
+  button#analyze-btn:disabled { opacity: 0.6; cursor: default; }
+
+  /* --- Result area: styled as a woven garment care-label tag --- */
+  .result-panel {
+    min-height: 320px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .empty-state {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    padding-top: 60px;
+    text-align: center;
+    max-width: 30ch;
+  }
+
+  .tag {
+    background: #FAF7EE;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    width: 100%;
+    max-width: 360px;
+    padding: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: tag-in 0.4s ease forwards;
+    position: relative;
+  }
+
+  @keyframes tag-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tag::before {
+    /* stitching effect along the top edge */
+    content: "";
+    position: absolute;
+    top: 6px; left: 6px; right: 6px;
+    border-top: 1px dashed var(--tan-border);
+  }
+
+  .tag-hole {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 14px;
+    background: var(--canvas);
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+  }
+
+  .tag-body {
+    padding: 30px 26px 24px;
+  }
+
+  .tag-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    margin: 0 0 4px;
+  }
+
+  .tag-fabric {
+    font-family: 'Fraunces', serif;
+    font-size: 1.7rem;
+    font-weight: 500;
+    margin: 0 0 18px;
+  }
+
+  .tag-confidence {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin: -14px 0 18px;
+  }
+
+  .eco-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .eco-badge.eco {
+    background: var(--eco-bg);
+    color: var(--eco);
+  }
+
+  .eco-badge.synthetic {
+    background: var(--synthetic-bg);
+    color: var(--synthetic);
+  }
+
+  .tag-reason {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+  }
+
+  .breakdown {
+    border-top: 1px solid var(--tan-border);
+    padding-top: 14px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    padding: 4px 0;
+    color: var(--ink-soft);
+  }
+
+  .breakdown-row .fabric-name {
+    color: var(--ink);
+  }
+
+  .error-msg {
+    color: var(--rust);
+    font-size: 0.9rem;
+    padding-top: 60px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Know your fabric</h1>
+    <p>Upload a photo of a fabric and find out what it's made of, and whether it's an eco-friendly material.</p>
+  </header>
+
+  <div class="layout">
+    <div>
+      <div class="dropzone" id="dropzone">
+        <p>Drop a fabric photo here, or click to choose one</p>
+        <input type="file" id="file-input" accept="image/*">
+      </div>
+      <div id="preview-wrap">
+        <img id="preview-img" alt="Selected fabric">
+      </div>
+      <button id="analyze-btn">Analyze fabric</button>
+    </div>
+
+    <div class="result-panel" id="result-panel">
+      <div class="empty-state">Your result will appear here after you upload a photo and analyze it.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = "http://localhost:5000/predict";
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('file-input');
+const previewWrap = document.getElementById('preview-wrap');
+const previewImg = document.getElementById('preview-img');
+const analyzeBtn = document.getElementById('analyze-btn');
+const resultPanel = document.getElementById('result-panel');
+
+let selectedFile = null;
+
+dropzone.addEventListener('click', () => fileInput.click());
+
+dropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropzone.classList.add('dragover');
+});
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    previewWrap.style.display = 'block';
+    analyzeBtn.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+analyzeBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+
+  analyzeBtn.disabled = true;
+  analyzeBtn.textContent = 'Analyzing...';
+
+  const formData = new FormData();
+  formData.append('image', selectedFile);
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error((await res.json()).error || 'Request failed');
+    const data = await res.json();
+    renderResult(data);
+  } catch (err) {
+    resultPanel.innerHTML = `<div class="error-msg">Couldn't analyze this image: ${err.message}<br>Is the backend running at ${API_URL}?</div>`;
+  } finally {
+    analyzeBtn.disabled = false;
+    analyzeBtn.textContent = 'Analyze fabric';
+  }
+});
+
+function renderResult(data) {
+  const isEco = data.sustainability.category.toLowerCase().includes('non') ? false : true;
+  const badgeClass = isEco ? 'eco' : 'synthetic';
+  const badgeText = data.sustainability.category;
+
+  const breakdownRows = data.ranked_predictions
+    .slice(0, 4)
+    .map(p => `
+      <div class="breakdown-row">
+        <span class="fabric-name">${p.fabric}</span>
+        <span>${Math.round(p.confidence * 100)}%</span>
+      </div>
+    `).join('');
+
+  resultPanel.innerHTML = `
+    <div class="tag">
+      <div class="tag-hole"></div>
+      <div class="tag-body">
+        <p class="tag-label">Fabric identified as</p>
+        <p class="tag-fabric">${data.fabric_type}</p>
+        <p class="tag-confidence">${Math.round(data.confidence * 100)}% confidence</p>
+        <span class="eco-badge ${badgeClass}">${badgeText}</span>
+        <p class="tag-reason">${data.sustainability.reason}</p>
+        <div class="breakdown">
+          ${breakdownRows}
+        </div>
+      </div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+cotton
+linen
+nylon
+polyester
+silk
+wool
